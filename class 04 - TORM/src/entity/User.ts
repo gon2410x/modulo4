@@ -5,7 +5,12 @@ import {
     BaseEntity,
     CreateDateColumn,
     UpdateDateColumn,
+    OneToOne, 
+    JoinColumn,
+    OneToMany
   } from "typeorm";
+  import { Photo } from "./Photo"
+  import { Profile } from "./Profile"
   
   @Entity() // se puede pasar como parametro el nombre de tabla ej: 'usersTable'
   export class User extends BaseEntity {
@@ -26,4 +31,11 @@ import {
   
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @OneToOne(() => Profile)
+    @JoinColumn()
+    profile: Profile
+
+    @OneToMany(() => Photo, (photo) => photo.user)
+    photos: Photo[]
   }

@@ -1,5 +1,7 @@
 import { DataSource } from "typeorm";
 import { User } from "./entity/User";
+import { Profile } from "./entity/Profile";
+import { Photo } from "./entity/Photo";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -10,5 +12,5 @@ export const AppDataSource = new DataSource({
   database: "ticket-system-db",
   // logging: true, // muestra peticiones a la bd
   synchronize: true,
-  entities: [User],
+  entities: [User, Profile, Photo],
 });

@@ -4,6 +4,8 @@ import { User } from "../entity/User";
 // -------- Agregar para jwt
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { Profile } from "../entity/Profile";
+import { Photo } from "../entity/Photo";
 const jwtSecret = 'somesecrettoken';
 const jwtRefreshTokenSecret = 'somesecrettokenrefresh';
 let refreshTokens: (string | undefined)[] = [];
@@ -30,8 +32,17 @@ interface UserBody {
 export const getUsers = async (req: Request, res: Response) => {
   console.log('entrando...');
   try {
-    const users = await User.find();
-    console.log('users: --->'), users;
+    //const users = await User.find();
+    //console.log('users: --->'), users;
+
+    const users = await User.find({
+      relations: {
+        profile: true,
+        photos: true,
+      },
+    });
+      
+
     return res.json(users);
   } catch (error) {
     if (error instanceof Error) {
@@ -44,7 +55,10 @@ export const getUsers = async (req: Request, res: Response) => {
 export const getUser = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const user = await User.findOneBy({ id: parseInt(id) });
+      const user = await User.findOne({ 
+        where: { id: parseInt(id) },
+        relations: ['profile', 'photos'] 
+      });
   
       if (!user) return res.status(404).json({ message: "User not found" });
   
@@ -57,13 +71,32 @@ export const getUser = async (req: Request, res: Response) => {
   };
 
   export const createUser = async (req: Request, res: Response) => {
-    const { email, password } = req.body;
+    const { email, password, profile, photos } = req.body;
+
+    const arrayPhotos: Photo[] = [];
+    for (let index = 0; index < photos.length; index++) {
+      const element = photos[index];
+      const photoElement = new Photo();
+      photoElement.url = element.url;
+      await photoElement.save();
+      arrayPhotos.push(photoElement);
+    }
+    
+
+    const profileUser = new Profile();
+    profileUser.gender = profile.gender;
+    profileUser.photo = profile.photo;
+    await profileUser.save();    
 
     const user = new User();
     user.email = email;
     user.password = password;
 
+    user.profile = profileUser
+    user.photos = arrayPhotos;
+
     await user.save();
+      
     return res.json(user);
   };
 
